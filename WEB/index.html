@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB</title>
+<!--MQTT.js-->
+    <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+<!--    外部包-->
+    <script src="lib.js"></script>
+    <script src="utils.js"></script>
+    <script src="sender.js"></script>
+    <script src="analysis.js"></script>
+</head>
+<body>
+    控制器编号: <input id="id" value="1188">&nbsp;&nbsp;
+    <button id="connect">MQTT连接</button>&nbsp;&nbsp;
+    <button id="disconnect">MQTT断开连接</button>&nbsp;&nbsp;
+    <button id="heartOpen">开启心跳</button>&nbsp;&nbsp;
+    <button id="heartClose">关闭心跳</button>&nbsp;&nbsp;
+    <button id="oneOpen">开启第1路</button>&nbsp;&nbsp;
+    <button id="secondOpen">开启第2路</button>&nbsp;&nbsp;
+    <button id="thirdOpen">开启第3路</button>&nbsp;&nbsp;
+    <button id="fourthOpen">开启第4路</button>&nbsp;&nbsp;
+    心跳间隔（秒）：<input id="heartInterval" value="45"></input>&nbsp;&nbsp;
+    <button id="submit">确认修改</button>&nbsp;&nbsp;
+    <span>心跳状态：</span>&nbsp;
+    <span id="heartStatus">心跳关闭</span>&nbsp;&nbsp;
+    <div
+            id="log"
+            style="height: 400px;overflow-y: auto;border: gray 1px solid;color: aqua"
+    ></div>
+    <button id="clear">清屏</button><hr>
+    <span>第一路：</span><br/>
+    <span>工作状态：</span><span id="oneStatus">关</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>最大电流：</span><span id="oneCurrrnt">0A</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>接线情况：</span><span id="oneWiring">没接线</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>开关状态：</span><span id="oneONOFF">遥控</span>&nbsp;&nbsp;&nbsp;&nbsp;<hr>
+    <span>第二路：</span><br/>
+    <span>工作状态：</span><span id="secondStatus">关</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>最大电流：</span><span id="secondCurrrnt">0A</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>接线情况：</span><span id="secondWiring">没接线</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>开关状态：</span><span id="secondONOFF">遥控</span>&nbsp;&nbsp;&nbsp;&nbsp;<hr>
+    <span>第三路：</span><br/>
+    <span>工作状态：</span><span id="thirdStatus">关</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>最大电流：</span><span id="thirdCurrrnt">0A</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>接线情况：</span><span id="thirdWiring">没接线</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>开关状态：</span><span id="thirdONOFF">遥控</span>&nbsp;&nbsp;&nbsp;&nbsp;<hr>
+    <span>第四路：</span><br/>
+    <span>工作状态：</span><span id="fourthStatus">关</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>最大电流：</span><span id="fourthCurrrnt">0A</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>接线情况：</span><span id="fourthWiring">没接线</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span>开关状态：</span><span id="fourthONOFF">遥控</span>&nbsp;&nbsp;&nbsp;&nbsp;<hr>
+
+<!--    Script-->
+    <script>
+        let client;
+        let id = document.getElementById("id").value;
+        let intervalID;
+        let heartData;
+        let heartIntervalTime = 45;
+
+
+        let isOne = true;
+        let isSecond = true;
+        let isThird = true;
+        let isFourth = true;
+
+        // MQTT配置参数
+        const options = {
+            keepalive: 60,
+            protocolId: "MQTT",
+            protocolVersion: 4,
+            //为false，则后会保存为其发送的qos为1，2的消息，重连后会收到
+            clean: false,
+            reconnectPeriod: 1000,
+            connectTimeout: 30 * 1000,
+            clientId: "emqx_test" + Math.random(),
+            username: "emqx_test1111",
+            password: "emqx_test1111",
+            //客户端断开连接时候服务端将发送消息通知
+            will:{
+                topic:'offline',
+                payload:'aaaaaaaaa'
+            }
+
+        };
+        //MQTT连接按钮
+        $("#connect").click(function () {
+            if (client) {
+                alert("已连接上MQTT");
+            } else{
+                client = mqtt.connect("ws://119.23.17.26:9083/mqtt", options);
+            client.on("connect", error => {
+                log("连接成功！");
+            });
+            client.on("reconnect", error => {
+                log("正在重连:");
+            });
+
+            client.on("error", error => {
+                log("连接失败:");
+            });
+            client.on("close", error => {
+                log("连接关闭:");
+            });
+
+            //接收消息
+            client.on("message", function (topic, payload, packet) {
+
+                if (topic == "/c/000000" + id) {
+                    heartData = payload;
+                    log(topic + " : " + "<br>" + Utils.buf2hex(payload) + "<hr>");
+                }
+                if (topic == "/a/000000" + id) {
+
+                    log(topic + " : " + "<br>" + Utils.buf2hex(payload) + "<hr>");
+
+                    let dd = new DevData(payload);
+                    console.log(dd);
+
+                    //解析数据-
+
+                    // let A1 = dd.aeratorInfo;
+                    Analysis.analysis(dd.aeratorInfo)
+
+
+                }
+                let sender = new Sender();
+                // command = sender.createCommand();
+            });
+
+            //订阅主题
+            let topicA = "/a/000000" + id;
+            let topicC = "/c/000000" + id;
+            client.subscribe(topicA);
+            console.log(topicA);
+            client.subscribe(topicC);
+            console.log(topicC);
+        }
+        })
+        //断开连接按钮
+        $("#disconnect").click(function () {
+            if (client) {
+                client.end();
+
+            }
+
+        })
+        //开启心跳
+        $("#heartOpen").click(function () {
+            interval();
+            document.getElementById("heartStatus").innerHTML = "心跳开启";
+        })
+        //关闭心跳
+        $("#heartClose").click(function () {
+            clearInterval(intervalID);
+            document.getElementById("heartStatus").innerHTML = "心跳关闭";
+        })
+
+        //开启/关闭第一路
+        $("#oneOpen").click(function () {
+
+            let sender = new Sender();
+            if (isOne) {
+                sender.sendSwitchMessage("00000000" + id, true, 1);
+            } else {
+                sender.sendSwitchMessage("00000000" + id, false, 1);
+            }
+            isOne=!isOne;
+
+        })
+        //开启/关闭第二路
+        $("#secondOpen").click(function () {
+
+            let sender = new Sender();
+            if (isSecond) {
+                sender.sendSwitchMessage("00000000" + id, true, 2);
+            } else {
+                sender.sendSwitchMessage("00000000" + id, false, 2);
+            }
+            isSecond=!isSecond;
+
+        })
+
+        //开启/关闭第三路
+        $("#thirdOpen").click(function () {
+
+            let sender = new Sender();
+            if (isThird) {
+                sender.sendSwitchMessage("00000000" + id, true, 3);
+            } else {
+                sender.sendSwitchMessage("00000000" + id, false, 3);
+            }
+            isThird=!isThird;
+
+        })
+
+        //开启/关闭第四路
+        $("#fourthOpen").click(function () {
+
+            let sender = new Sender();
+            if (isFourth) {
+                sender.sendSwitchMessage("00000000" + id, true, 4);
+            } else {
+                sender.sendSwitchMessage("00000000" + id, false, 4);
+            }
+            isFourth=!isFourth;
+
+        })
+        //修改心跳间隔
+        $("#submit").click(function () {
+            heartIntervalTime = Number(document.getElementById("heartInterval").value);
+            clearInterval(intervalID);
+            interval();
+            console.log(heartIntervalTime);
+        })
+
+
+
+
+
+        //定时任务
+        function interval() {
+            let sender = new Sender();
+            intervalID = setInterval(function () {
+                // sender.sendSwitchMessage("00000000" + id,true,1);
+                sender.sendAckMessage("00000000" + id);
+            }, heartIntervalTime * 1000);
+        }
+
+        //清屏
+        $("#clear").click(function () {
+            document.getElementById("log").innerHTML = "";
+        })
+
+        //把消息显示在文本框里面
+        function log(message) {
+            //判断信息是那个主题的
+            let flag = message.substr(1, 1);
+            if (flag == "a") {
+                $("#log").append("<div style='color: dodgerblue'>" + message + "</div>");
+
+            }else if (flag == "c") {
+                $("#log").append("<div style='color: coral'>" + message + "</div>");
+
+            } else {
+                $("#log").append("<div style='color: #000000'>" + message + "</div>");
+            }
+
+            $("#log").scrollTop(1000000);
+
+        }
+
+
+    </script>
+</body>
+</html>
