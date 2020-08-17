@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <!--MQTT.js-->
+    <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+
+    <script src="controller.js"></script>
+    <script src="Data.js"></script>
+    <script src="configuration.js"></script>
+</head>
+<body>
+    控制箱编号：<input id="id" value="1188">
+    <hr>
+    <button id="Up">上电</button>
+    <button id="Down">断电</button><hr/>
+
+    <p>第一路</p>
+
+    <select id="s1">
+        <option id="ManuallyOpen1">手动开</option>
+        <option id="ManuallyClose1">手动关</option>
+        <option id="RemoteOpen1">遥控开</option>
+        <option id="RemoteClose1">遥控关</option>
+        <option id="ERROR1">故障</option>
+        <option id="Close1">电流异常</option>
+    </select>
+    <br/>
+    <br/>
+    <select id="w1">
+        <option id="allWiring1">接线</option>
+        <option id="noWiring1">没有接线</option>
+        <option id="oneWiring1">一路有电流</option>
+        <option id="twoWiring1">二路有电流</option>
+        <option id="threeWiring1">三路有电流</option>
+    </select>
+    <br>
+    <br>
+    电流值：<input id="elect1" value="00">
+    <br>
+    <br>
+    <button id="send1" >发送</button>
+    <hr>
+    <p>第二路</p>
+
+    <select id="s2">
+        <option id="ManuallyOpen2">手动开</option>
+        <option id="ManuallyClose2">手动关</option>
+        <option id="RemoteOpen2">遥控开</option>
+        <option id="RemoteClose2">遥控关</option>
+        <option id="ERROR2">故障</option>
+        <option id="Close2">电流异常</option>
+    </select>
+    <br/>
+    <br/>
+    <select id="w2">
+        <option id="allWiring2">接线</option>
+        <option id="noWiring2">没有接线</option>
+        <option id="oneWiring2">一路有电流</option>
+        <option id="twoWiring2">二路有电流</option>
+        <option id="threeWiring2">三路有电流</option>
+    </select>
+    <br>
+    <br>
+    电流值：<input id="elect2" value="00">
+    <br>
+    <br>
+    <button id="send2" >发送</button>
+    <hr>
+    <p>第三路</p>
+
+    <select id="s3">
+        <option id="ManuallyOpen3">手动开</option>
+        <option id="ManuallyClose3">手动关</option>
+        <option id="RemoteOpen3">遥控开</option>
+        <option id="RemoteClose3">遥控关</option>
+        <option id="ERROR3">故障</option>
+        <option id="Close3">电流异常</option>
+    </select>
+    <br/>
+    <br/>
+    <select id="w3">
+        <option id="allWiring3">接线</option>
+        <option id="noWiring3">没有接线</option>
+        <option id="oneWiring3">一路有电流</option>
+        <option id="twoWiring3">二路有电流</option>
+        <option id="threeWiring3">三路有电流</option>
+    </select>
+    <br>
+    <br>
+    电流值：<input id="elect3" value="00">
+    <br>
+    <br>
+    <button id="send3" >发送</button>
+    <hr>
+    <p>第四路</p>
+
+    <select id="s4">
+        <option id="ManuallyOpen4">手动开</option>
+        <option id="ManuallyClose4">手动关</option>
+        <option id="RemoteOpen4">遥控开</option>
+        <option id="RemoteClose4">遥控关</option>
+        <option id="ERROR4">故障</option>
+        <option id="Close4">电流异常</option>
+    </select>
+    <br/>
+    <br/>
+    <select id="w4">
+        <option id="allWiring4">接线</option>
+        <option id="noWiring4">没有接线</option>
+        <option id="oneWiring4">一路有电流</option>
+        <option id="twoWiring4">二路有电流</option>
+        <option id="threeWiring4">三路有电流</option>
+    </select>
+    <br>
+    <br>
+    电流值：<input id="elect4" value="00">
+    <br>
+    <br>
+    <button id="send4" >发送</button>
+
+    <hr>
+
+
+    <script>
+        let cilent = new Controller();
+        cilent.connect(document.getElementById("id").value, MQTT_IP, options);
+
+
+        let data = new Data();
+
+        $("#Up").click(function () {
+            let data = new command();
+            let addr = "00000000"+document.getElementById("id").value;
+            console.log(addr);
+            cilent.sendMessage(addr, data.sendAckMessageWithUp(addr));
+        });
+
+        $("#send1").click(function () {
+
+            let addr = "00000000"+document.getElementById("id").value;
+            console.log(addr);
+
+            let select = document.getElementById("s1");
+            let index = select.selectedIndex;
+            let state = select.options[index].id;
+
+            let select2 = document.getElementById("w1");
+            let index2 = select2.selectedIndex;
+            let wiring = select2.options[index2].id;
+
+            data.address = addr;
+            data.command = Data.DATA_CODE;
+            switch (state) {
+                case "ManuallyOpen1":
+                    data.work_state1 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch1 = Data.SWITCH_STATE_BUTTON_OPEN;
+                    break;
+                case "ManuallyClose1":
+                    data.work_state1 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch1 = Data.SWITCH_STATE_BUTTON_CLOSE;
+                    break;
+                case "RemoteOpen1":
+                    data.work_state1 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch1 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "RemoteClose1":
+                    data.work_state1 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch1 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "ERROR1":
+                    data.work_state1 = Data.WORK_STATE_ABNORMAL_CODE;
+                    break;
+                case "Close1":
+                    data.work_state1 = Data.WORK_STATE_ABNORMAL_CODE;
+                    break;
+
+            }
+            switch (wiring) {
+                case "allWiring1":
+                    data.wiring1 = Data.WIRING_ALL;
+                    break;
+                case "noWiring1":
+                    data.wiring1 = Data.WIRING_NO;
+                    break;
+                case "oneWiring1":
+                    data.wiring1 = Data.WIRING_ONE;
+                    break;
+                case "twoWiring1":
+                    data.wiring1 = Data.WIRING_TWO;
+                    break;
+                case "threeWiring1":
+                    data.wiring1 = Data.WIRING_THREE;
+                    break;
+            }
+            data.CURRENT_VALUE1=document.getElementById("elect1").value;
+            cilent.sendMessage(addr, data.createCommand());
+        });
+
+        $("#send2").click(function () {
+
+            let addr = "00000000"+document.getElementById("id").value;
+            console.log(addr);
+
+            let select = document.getElementById("s2");
+            let index = select.selectedIndex;
+            let state = select.options[index].id;
+
+            let select2 = document.getElementById("w2");
+            let index2 = select2.selectedIndex;
+            let wiring = select2.options[index2].id;
+
+            data.address = addr;
+            data.command = Data.DATA_CODE;
+            switch (state) {
+                case "ManuallyOpen2":
+                    data.work_state2 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch2 = Data.SWITCH_STATE_BUTTON_OPEN;
+                    break;
+                case "ManuallyClose2":
+                    data.work_state2 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch2 = Data.SWITCH_STATE_BUTTON_CLOSE;
+                    break;
+                case "RemoteOpen2":
+                    data.work_state2 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch2 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "RemoteClose2":
+                    data.work_state2 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch2 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "ERROR2":
+                    data.work_state2 = Data.WORK_STATE_ERROR_CODE;
+                    break;
+                case "Close2":
+                    data.work_state2 = Data.WORK_STATE_ABNORMAL_CODE;
+                    break;
+
+            }
+            switch (wiring) {
+                case "allWiring2":
+                    data.wiring2 = Data.WIRING_ALL;
+                    break;
+                case "noWiring2":
+                    data.wiring2 = Data.WIRING_NO;
+                    break;
+                case "oneWiring2":
+                    data.wiring2 = Data.WIRING_ONE;
+                    break;
+                case "twoWiring2":
+                    data.wiring2 = Data.WIRING_TWO;
+                    break;
+                case "threeWiring2":
+                    data.wiring2 = Data.WIRING_THREE;
+                    break;
+            }
+            data.CURRENT_VALUE2=document.getElementById("elect2").value;
+            cilent.sendMessage(addr, data.createCommand());
+        });
+
+        $("#send3").click(function () {
+
+            let addr = "00000000"+document.getElementById("id").value;
+            console.log(addr);
+
+            let select = document.getElementById("s3");
+            let index = select.selectedIndex;
+            let state = select.options[index].id;
+
+            let select2 = document.getElementById("w3");
+            let index2 = select2.selectedIndex;
+            let wiring = select2.options[index2].id;
+
+            data.address = addr;
+            data.command = Data.DATA_CODE;
+            switch (state) {
+                case "ManuallyOpen3":
+                    data.work_state2 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch2 = Data.SWITCH_STATE_BUTTON_OPEN;
+                    break;
+                case "ManuallyClose3":
+                    data.work_state2 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch2 = Data.SWITCH_STATE_BUTTON_CLOSE;
+                    break;
+                case "RemoteOpen3":
+                    data.work_state2 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch2 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "RemoteClose3":
+                    data.work_state2 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch2 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "ERROR3":
+                    data.work_state2 = Data.WORK_STATE_ERROR_CODE;
+                    break;
+                case "Close1":
+                    data.work_state2 = Data.WORK_STATE_ABNORMAL_CODE;
+                    break;
+
+            }
+            switch (wiring) {
+                case "allWiring2":
+                    data.wiring2 = Data.WIRING_ALL;
+                    break;
+                case "noWiring2":
+                    data.wiring2 = Data.WIRING_NO;
+                    break;
+                case "oneWiring2":
+                    data.wiring2 = Data.WIRING_ONE;
+                    break;
+                case "twoWiring2":
+                    data.wiring2 = Data.WIRING_TWO;
+                    break;
+                case "threeWiring2":
+                    data.wiring2 = Data.WIRING_THREE;
+                    break;
+            }
+            data.CURRENT_VALUE2=document.getElementById("elect2").value;
+            cilent.sendMessage(addr, data.createCommand());
+        });
+
+        $("#send2").click(function () {
+
+            let addr = "00000000"+document.getElementById("id").value;
+            console.log(addr);
+
+            let select = document.getElementById("s2");
+            let index = select.selectedIndex;
+            let state = select.options[index].id;
+
+            let select2 = document.getElementById("w2");
+            let index2 = select2.selectedIndex;
+            let wiring = select2.options[index2].id;
+
+            data.address = addr;
+            data.command = Data.DATA_CODE;
+            switch (state) {
+                case "ManuallyOpen2":
+                    data.work_state2 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch2 = Data.SWITCH_STATE_BUTTON_OPEN;
+                    break;
+                case "ManuallyClose2":
+                    data.work_state2 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch2 = Data.SWITCH_STATE_BUTTON_CLOSE;
+                    break;
+                case "RemoteOpen2":
+                    data.work_state2 = Data.WORK_STATE_OPEN_CODE;
+                    data.switch2 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "RemoteClose2":
+                    data.work_state2 = Data.WORK_STATE_CLOSE_CODE;
+                    data.switch2 = Data.SWITCH_STATE_REMOTE;
+                    break;
+                case "ERROR2":
+                    data.work_state2 = Data.WORK_STATE_ERROR_CODE;
+                    break;
+                case "Close1":
+                    data.work_state2 = Data.WORK_STATE_ABNORMAL_CODE;
+                    break;
+
+            }
+            switch (wiring) {
+                case "allWiring2":
+                    data.wiring2 = Data.WIRING_ALL;
+                    break;
+                case "noWiring2":
+                    data.wiring2 = Data.WIRING_NO;
+                    break;
+                case "oneWiring2":
+                    data.wiring2 = Data.WIRING_ONE;
+                    break;
+                case "twoWiring2":
+                    data.wiring2 = Data.WIRING_TWO;
+                    break;
+                case "threeWiring2":
+                    data.wiring2 = Data.WIRING_THREE;
+                    break;
+            }
+            data.CURRENT_VALUE2=document.getElementById("elect2").value;
+            cilent.sendMessage(addr, data.createCommand());
+        });
+
+
+    </script>
+</body>
+</html>

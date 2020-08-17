@@ -13,7 +13,7 @@
     <script src="analysis.js"></script>
 </head>
 <body>
-    控制器编号: <input id="id" value="1188">&nbsp;&nbsp;
+    控制器编号: <input id="id" value="9999">&nbsp;&nbsp;
     <button id="connect">MQTT连接</button>&nbsp;&nbsp;
     <button id="disconnect">MQTT断开连接</button>&nbsp;&nbsp;
     <button id="heartOpen">开启心跳</button>&nbsp;&nbsp;
@@ -67,6 +67,7 @@
         let isFourth = true;
 
         // MQTT配置参数
+        // MQTT配置参数
         const options = {
             keepalive: 60,
             protocolId: "MQTT",
@@ -90,7 +91,7 @@
             if (client) {
                 alert("已连接上MQTT");
             } else{
-                client = mqtt.connect("ws://119.23.17.26:9083/mqtt", options);
+                client = mqtt.connect("ws://39.108.84.205:8083/mqtt", options);
             client.on("connect", error => {
                 log("连接成功！");
             });

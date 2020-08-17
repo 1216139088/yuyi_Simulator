@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+
+    <!--MQTT.js-->
+    <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+
+    <script src="controller.js"></script>
+    <script src="MQTT.js"></script>
+    <script src="configuration.js"></script>
+    <script src="data.js"></script>
+    <script src="utils.js"></script>
+</head>
+<body>
+控制箱编号：<input id="id" value="9999">
+<hr>
+<button id="Up">上电</button>
+<button id="Down">断电</button><hr/>
+
+<p>第一路</p>
+
+<select id="s1" onchange="test(1)">
+    <option id="ManuallyOpen1">手动开</option>
+    <option id="ManuallyClose1">手动关</option>
+    <option id="RemoteOpen1">遥控开</option>
+    <option id="RemoteClose1">遥控关</option>
+    <option id="ERROR1">故障</option>
+    <option id="Close1">电流异常</option>
+</select>
+<br/>
+<br/>
+<select id="w1" onchange="wire(1)">
+    <option id="allWiring1">接线</option>
+    <option id="noWiring1">没有接线</option>
+    <option id="oneWiring1">一路有电流</option>
+    <option id="twoWiring1">二路有电流</option>
+    <option id="threeWiring1">三路有电流</option>
+</select>
+<br>
+<br>
+电流值：<input id="elect1" value="00">
+<br>
+<br>
+<button id="send1" >发送</button>
+<hr>
+<p>第二路</p>
+
+<select id="s2" onchange="test(2)">
+    <option id="ManuallyOpen2">手动开</option>
+    <option id="ManuallyClose2">手动关</option>
+    <option id="RemoteOpen2">遥控开</option>
+    <option id="RemoteClose2">遥控关</option>
+    <option id="ERROR2">故障</option>
+    <option id="Close2">电流异常</option>
+</select>
+<br/>
+<br/>
+<select id="w2" onchange="wire(2)">
+    <option id="allWiring2">接线</option>
+    <option id="noWiring2">没有接线</option>
+    <option id="oneWiring2">一路有电流</option>
+    <option id="twoWiring2">二路有电流</option>
+    <option id="threeWiring2">三路有电流</option>
+</select>
+<br>
+<br>
+电流值：<input id="elect2" value="00">
+<br>
+<br>
+<button id="send2" >发送</button>
+<hr>
+<p>第三路</p>
+
+<select id="s3" onchange="test(3)">
+    <option id="ManuallyOpen3">手动开</option>
+    <option id="ManuallyClose3">手动关</option>
+    <option id="RemoteOpen3">遥控开</option>
+    <option id="RemoteClose3">遥控关</option>
+    <option id="ERROR3">故障</option>
+    <option id="Close3">电流异常</option>
+</select>
+<br/>
+<br/>
+<select id="w3" onchange="wire(3)">
+    <option id="allWiring3">接线</option>
+    <option id="noWiring3">没有接线</option>
+    <option id="oneWiring3">一路有电流</option>
+    <option id="twoWiring3">二路有电流</option>
+    <option id="threeWiring3">三路有电流</option>
+</select>
+<br>
+<br>
+电流值：<input id="elect3" value="00">
+<br>
+<br>
+<button id="send3" >发送</button>
+<hr>
+<p>第四路</p>
+
+<select id="s4" onchange="test(4)">
+    <option id="ManuallyOpen4">手动开</option>
+    <option id="ManuallyClose4">手动关</option>
+    <option id="RemoteOpen4">遥控开</option>
+    <option id="RemoteClose4">遥控关</option>
+    <option id="ERROR4">故障</option>
+    <option id="Close4">电流异常</option>
+</select>
+<br/>
+<br/>
+<select id="w4" onchange="wire(4)">
+    <option id="allWiring4">接线</option>
+    <option id="noWiring4">没有接线</option>
+    <option id="oneWiring4">一路有电流</option>
+    <option id="twoWiring4">二路有电流</option>
+    <option id="threeWiring4">三路有电流</option>
+</select>
+<br>
+<br>
+电流值：<input id="elect4" value="00">
+<br>
+<br>
+<button id="send4" >发送</button>
+
+<hr>
+    <script>
+        let addr = document.getElementById("id").value;
+        client = new Controller(addr);
+        $("#Up").click(function () {
+            client.interval();
+        });
+
+        $("#Down").click(function () {
+            client.cleanInter();
+        });
+
+        function test(route) {
+            let state = document.getElementById("s"+route).value;
+            switch (state) {
+                case "手动开":
+                    client.operating(route, 0);
+                    break;
+                case "手动关":
+                    client.operating(route, 1);
+                    break;
+                case "遥控开":
+                    client.operating(route, 2);
+                    break;
+                case "遥控关":
+                    client.operating(route, 3);
+                    break;
+                case "故障":
+                    client.operating_ERROR(route);
+                    break;
+                case "电流异常":
+                    client.operating_Close(route);
+                    break;
+            }
+        }
+
+        function wire(route) {
+            let state = document.getElementById("w"+route).value;
+            switch (state) {
+                case "接线":
+                    client.wiring(route, 4);
+                    break;
+                case "没有接线":
+                    client.wiring(route, 0);
+                    break;
+                case "一路有电流":
+                    client.wiring(route, 1);
+                    break;
+                case "二路有电流":
+                    client.wiring(route, 2);
+                    break;
+                case "三路有电流":
+                    client.wiring(route,3);
+                    break;
+            }
+        }
+
+
+        $("#send1").click(function () {
+            client.Electric1(document.getElementById("elect1").value);
+        });
+        $("#send2").click(function () {
+            client.Electric2(document.getElementById("elect2").value);
+        });
+        $("#send3").click(function () {
+            client.Electric3(document.getElementById("elect3").value);
+        });
+        $("#send4").click(function () {
+            client.Electric4(document.getElementById("elect4").value);
+        });
+
+    </script>
+</body>
+</html>
